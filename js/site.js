@@ -2,6 +2,24 @@
 // OTUSAT-1 Ground Station — JS Interop Module
 // =============================================
 
+// Prevent browser from restoring scroll position on SPA navigation
+history.scrollRestoration = 'manual';
+
+let isMotionEnabled = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function scrollToTop() {
+    // Bypass CSS smooth-scroll for instant navigation reset
+    document.documentElement.style.scrollBehavior = 'auto';
+    document.body.style.scrollBehavior = 'auto';
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+    setTimeout(() => {
+        document.documentElement.style.scrollBehavior = '';
+        document.body.style.scrollBehavior = '';
+    }, 50);
+}
+
 function initStarfield() {
     const canvas = document.getElementById('bg-canvas');
     if (!canvas || typeof THREE === 'undefined') return;
@@ -53,12 +71,19 @@ function initStarfield() {
     let time = 0;
     (function animate() {
         requestAnimationFrame(animate);
-        time += 0.0004;
-        stars.rotation.y = time;
-        stars.rotation.x = scrollY * 0.00004;
+        if (isMotionEnabled) {
+            time += 0.0002; // Reduced from 0.0004
+            stars.rotation.y = time;
+            stars.rotation.x = scrollY * 0.00002; // Reduced from 0.00004
+        }
         renderer.render(scene, camera);
     })();
 }
+
+function setMotionStatus(status) {
+    isMotionEnabled = status;
+}
+
 
 function initGSAP() {
     if (typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') return;
